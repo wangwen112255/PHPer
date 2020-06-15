@@ -1,0 +1,102 @@
+class SengSms
+{
+    const ACCESS_KEY_ID = '';
+    const ACCESS_KEY_SECRET = '';
+    const SIGN_NAME = '';
+    const TEMPLATE_CODE = '';
+
+    /**
+     * 短信发送
+     * @param string $phone 手机号
+     * @param string $code 验证码
+     * @throws ServiceException
+     */
+    public static function SendSms(string $phone,string $code)
+    {
+        $param = [
+            'AccessKeyId'=>self::ACCESS_KEY_ID,
+            'Action'=>'SendSms',
+            'Format'=>'json',
+            'RegionId'=>'cn-hangzhou',
+            'SignatureMethod'=>'HMAC-SHA1',
+            'SignatureNonce'=>uniqid(),
+            'SignatureVersion'=>'1.0',
+            'Timestamp'=>gmdate ( 'Y-m-d\TH:i:s\Z' ),
+            'Version'=>'2017-05-25',
+            'PhoneNumbers'=>$phone, // 手机号码
+            'SignName'=>self::SIGN_NAME, // 短信签名名称
+            'TemplateCode'=>self::TEMPLATE_CODE, // 签名模板id
+            'TemplateParam'=>"{'name':'Tom','code':{$code}}",
+        ];
+
+        $param ['Signature']  = self::computeSignature ( $param, self::ACCESS_KEY_SECRET );
+        $sms_url = 'https://dysmsapi.aliyuncs.com?'.http_build_query($param);
+        $result = self::curlRequest($sms_url);
+        $result = json_decode($result,true);
+        if($result['Code'] != 'OK'){
+            throw new ServiceException(['code'=>'19999','msg'=>$result['Message']]);
+        }
+    }
+
+    /**
+     * 使用curl方式实现get或post请求
+     * @param $url 请求的url地址
+     * @param $data 发送的post数据 如果为空则为get方式请求
+     * @return 请求后获取到的数据
+     */
+    private static function curlRequest($url,$data = ''){
+        $ch = curl_init();
+        $params[CURLOPT_URL] = $url;    //请求url地址
+        $params[CURLOPT_HEADER] = false; //是否返回响应头信息
+        $params[CURLOPT_RETURNTRANSFER] = true; //是否将结果返回
+        $params[CURLOPT_FOLLOWLOCATION] = true; //是否重定向
+        $params[CURLOPT_TIMEOUT] = 30; //超时时间
+        if(!empty($data)){
+            $params[CURLOPT_POST] = true;
+            $params[CURLOPT_POSTFIELDS] = $data;
+        }
+        $params[CURLOPT_SSL_VERIFYPEER] = false;//请求https时设置,还有其他解决方案
+        $params[CURLOPT_SSL_VERIFYHOST] = false;//请求https时,其他方案查看其他博文
+        curl_setopt_array($ch, $params); //传入curl参数
+        $content = curl_exec($ch); //执行
+        curl_close($ch); //关闭连接
+        return $content;
+    }
+
+    /**
+     * 字符替换
+     * @param $string
+     * @return string|string[]|null
+     */
+    private static function percentEncode($string) {
+
+        $string = urlencode ( $string );
+
+        $string = preg_replace ( '/\+/', ' ', $string );
+
+        $string = preg_replace ( '/\*/', '*', $string );
+
+        $string = preg_replace ( '/~/', '~', $string );
+
+        return $string;
+
+    }
+
+    /**
+     * 签名算法
+     * @param unknown $parameters
+     * @param unknown $accessKeySecret
+     * @return string
+     */
+    private static function computeSignature($parameters, $accessKeySecret) {
+        ksort ( $parameters );
+        $canonicalizedQueryString = '';
+        foreach ( $parameters as $key => $value ) {
+            $canonicalizedQueryString .= '&' . self::percentEncode ( $key ) . '=' . self::percentEncode ( $value );
+        }
+        $stringToSign = 'GET&/&' . self::percentencode ( substr ( $canonicalizedQueryString, 1 ) );
+        $signature = base64_encode ( hash_hmac ( 'sha1', $stringToSign, $accessKeySecret . '&', true ) );
+        return $signature;
+
+    }
+}
