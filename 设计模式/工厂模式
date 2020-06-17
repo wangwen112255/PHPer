@@ -1,17 +1,3 @@
-class BaseFactory {
-    const MYSQL_CLASS = 10000;
-    const SEND_SMS_CLASS = 20000;
-    
-    public static $array = [
-        self::SEND_SMS_CLASS =>'Mysql',
-        self::SEND_SMS_CLASS=>'SendSms',
-    ];
-    
-    public static function execute($params){
-        return new self::$array[$param];
-    }
-}
-
 interface DbClass{
   public function connection();
 }
@@ -30,6 +16,12 @@ class mysqli  implements DbClass{
     }
 }
 
+// 工厂类简单实现 通过传入不同的类名得到不同的对象，调用方法
+class BaseFactory {
+    public static function execute($class_name){
+        return new self::$class_name;
+    }
+}
 
 $obj = BaseFactory::execute('pdo2');
 $obj->connect();
