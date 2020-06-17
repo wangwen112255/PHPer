@@ -1,5 +1,35 @@
-class Factory {
-  
+class BaseFactory {
+    const MYSQL_CLASS = 10000;
+    const SEND_SMS_CLASS = 20000;
+    
+    public static $array = [
+        self::SEND_SMS_CLASS =>'Mysql',
+        self::SEND_SMS_CLASS=>'SendSms',
+    ];
+    
+    public static function execute($params){
+        return new self::$array[$param];
+    }
 }
 
-等待。。。。
+interface DbClass{
+  public function connection();
+}
+
+class pdo2 implements DbClass{
+ 
+    public function connect(){
+        echo 'pdo';
+    }
+}
+
+class mysqli  implements DbClass{
+ 
+    public  function connect(){
+        echo 'mysqli';
+    }
+}
+
+
+$obj = BaseFactory::execute('pdo2');
+$obj->connect();
