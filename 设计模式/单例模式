@@ -3,7 +3,7 @@ class Singleton implements definition_MySql
 {
 
     // 私有的静态变量保存该类对象
-    private static $instance;
+    private static $instance = null;
 
     // 防止克隆
     private function __clone()
