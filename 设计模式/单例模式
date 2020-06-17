@@ -1,5 +1,69 @@
-class {
 
+class Singleton implements definition_MySql
+{
+
+    // 私有的静态变量保存该类对象
+    private static $instance;
+
+    // 防止克隆
+    private function __clone()
+    {
+
+    }
+
+    // 防止实例化
+    private function __construct()
+    {
+        $mysql_obj = new \mysqli();
+        $mysql_obj->connect('127.0.0.1','root','root','test');
+    }
+
+    //获取对象的唯一方式
+    public static function implement()
+    {
+        if(!self::$instance instanceof self){
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
+
+    // 数据插入
+    public function insert(){
+
+    }
+    // 数据修改
+    public function update(){
+
+    }
+    // 数据删除
+    public function delete(){
+
+    }
+    // 数据获取
+    public function all(){
+
+    }
+    // 查询条件
+    public function where(){
+
+    }
+
+    // 计算数量
+    public function count(){
+
+    }
+    // 数据排序
+    public function orderBy(){
+
+    }
+
+    //偏移量
+    public function limit(){
+
+    }
+
+    // 分组
+    public function group(){
+
+    }
 }
-
-待完善。。。。
