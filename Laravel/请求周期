@@ -1,0 +1,78 @@
+Laravel 的生命周期的概述
+  首先所有的的请求入口都是public\index.php文件，文件代码非常少，就那么几行代码，整个周期分为四个阶段
+  1、加载项目依赖
+  2、
+
+一、入口文件
+  
+  // 定义laravel 一个请求的时间，貌似没有应用到这个东西
+  define('LARAVEL_START', microtime(true));
+  
+  // 引入conposer自动加载机制
+  require __DIR__.'/../vendor/autoload.php';
+  
+  $app = require_once __DIR__.'/../bootstrap/app.php';
+  
+  $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
+
+  $response = $kernel->handle(
+    $request = Illuminate\Http\Request::capture()
+  );
+
+  $response->send();
+
+  $kernel->terminate($request, $response);
+
+二、创建应用程序类实例
+  // 实例化 Application
+  $app = new Illuminate\Foundation\Application(
+      $_ENV['APP_BASE_PATH'] ?? dirname(__DIR__)
+  );
+  
+  // Http Kernel 单例
+  $app->singleton(
+      Illuminate\Contracts\Http\Kernel::class,
+      App\Http\Kernel::class
+  );
+
+  // Console Kernel 单例
+  $app->singleton(
+      Illuminate\Contracts\Console\Kernel::class,
+      App\Console\Kernel::class
+  );
+  
+  // 异常处理 单例
+  $app->singleton(
+      Illuminate\Contracts\Debug\ExceptionHandler::class,
+      App\Exceptions\Handler::class
+  );
+
+  $app->register(Overtrue\LaravelLang\TranslationServiceProvider::class);
+
+  return $app;
+ 
+ 创建应用实例的时候，该Application 拓展了容器类：
+ 
+    $this->setBasePath($basePath);
+    $this->registerBaseBindings();
+    $this->registerBaseServiceProviders();
+    $this->registerCoreContainerAliases();
+ 
+ setBasePath($basePath); 方法在容器当中注册了所有相关的路径，例如app根路径 存储路由，资源路径，等
+  setBasePath() 方法会调用bindPathsInContainer 方法：
+     
+     protected function bindPathsInContainer()
+      {
+        $this->instance('path', $this->path());
+        $this->instance('path.base', $this->basePath());
+        $this->instance('path.lang', $this->langPath());
+        $this->instance('path.config', $this->configPath());
+        $this->instance('path.public', $this->publicPath());
+        $this->instance('path.storage', $this->storagePath());
+        $this->instance('path.database', $this->databasePath());
+        $this->instance('path.resources', $this->resourcePath());
+        $this->instance('path.bootstrap', $this->bootstrapPath());
+      }
+  registerBaseBindings() 方法中，见自身设置为静态实例，
+  
+  至此容器的注册已经完成了，因为我们在需要的时候随时解析全局实例，接下来，实在声明周期中注册核心服务提供者。
